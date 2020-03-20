@@ -15,10 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+import dalbit.views
+
 #from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', dalbit.views.index, name='index'),
+    path('dalbitMain/', dalbit.views.dalbitMain, name='dalbitMain'),
 ]
 
 """ Take this comment out to enable DebugToolbar

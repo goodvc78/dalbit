@@ -32,12 +32,14 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     #'debug_toolbar',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dalbit.apps.DalbitConfig',
 ]
 
 MIDDLEWARE = [
@@ -78,12 +80,21 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django',
+        'NAME': 'urldb',
         'USER': 'root',
-        'PASSWORD': 'password',
+        'PASSWORD': 'dalbit!@#',
+        'HOST': 'mysql',
+        'PORT': 3306,
+    }, 
+    'urldb': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'urldb',
+        'USER': 'root',
+        'PASSWORD': 'dalbit!@#',
         'HOST': 'mysql',
         'PORT': 3306,
     }
+
 }
 
 
@@ -123,8 +134,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'dalbit', 'static')
+]
+ 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/html/static/'
+
+
 
 """ Take this comment out to enable DebugToolbar
 DEBUG_TOOLBAR_CONFIG = {
