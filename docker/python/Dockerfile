@@ -14,6 +14,7 @@ RUN yum clean all && yum update -y && yum upgrade -y && \
     yum install -y gitflow python36-devel python36-pip && \
     yum install -y mysql-devel
 
+RUN pip3.6 install --ignore-installed --upgrade pip setuptools six supervisor psutil flake8 jedi
 # RUN unlink /bin/python && \
 # 	ln -s /bin/python3.6 /bin/python && \
 # 	ln -s /bin/pip3.6 /bin/pip

@@ -13,8 +13,12 @@ services:
   python:
     container_name: python
     build: ./docker/python
+    ports:
+      - 19000-20000:19000-20000
     volumes:
       - ./app:/var/www/html
+    environment:
+      TZ: "Asia/Seoul"
     working_dir: /var/www/html
     depends_on:
       mysql:

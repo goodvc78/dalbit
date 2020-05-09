@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls import url
+
 import dalbit.views
+import dalbit.api_views
 
 #from django.conf import settings
 
@@ -23,6 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', dalbit.views.index, name='index'),
     path('dalbitMain/', dalbit.views.dalbitMain, name='dalbitMain'),
+    url('^dalbit_info/(?P<file_key>[A-Za-z0-9]+)/$', dalbit.api_views.urldb_info),
+    url('^dalbit_dn/(?P<file_key>[A-Za-z0-9]+)/(?P<file_ver>[A-Za-z0-d\.]+)/$', dalbit.api_views.urldb_download),
 ]
 
 """ Take this comment out to enable DebugToolbar
