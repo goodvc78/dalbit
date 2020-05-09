@@ -3,6 +3,7 @@ services:
   web:
     container_name: web
     build: ./docker/nginx
+    privileged: true
     ports:
       - 8888:80
     volumes:
@@ -13,6 +14,7 @@ services:
   python:
     container_name: python
     build: ./docker/python
+    privileged: true
     ports:
       - 19000-20000:19000-20000
     volumes:
@@ -26,6 +28,7 @@ services:
   mysql:
     build: docker/mysql
     container_name: mysql
+    privileged: true
     ports:
       - 3306:3306
     volumes:
