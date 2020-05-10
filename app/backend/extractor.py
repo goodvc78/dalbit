@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import zlib
 import time
 import errno   
 import codecs
+import hashlib
 import logging
 import datetime
 from tqdm import tqdm
@@ -37,7 +39,11 @@ class Extractor:
         url_ds = self.udb.execute_select(q)
         return url_ds
 
-    def fetch_data(self, q, out_fname, delimiter=u',', fetch_size=10):
+    def fetch_data(self, q, out_fname, salt, delimiter=u',', fetch_size=10):
+        def hashing(row):
+            hashed = self.to_hash(row.get('data', ''), salt)
+            row['data'] = hashed
+
         def _write_row(f, row):
             row = map(str, row)
             s = delimiter.join(row)
@@ -60,6 +66,7 @@ class Extractor:
                 for row in rows:
                     max_idx = max(max_idx, row['id'])
                     min_idx = min(min_idx, row['id'])
+                    hashing(row)
                     row = [row.get(col, '') for col in header]
                     _write_row(fout, row)
                     n_rows += 1
@@ -95,13 +102,26 @@ class Extractor:
             tkns[2] = '0'
         return '.'.join(tkns)
 
-    def add_new_ver(self, ver, type, start_idx, end_idx, n_affected):
+    def to_hash(self, data, salt):
+        s = '{salt}.{data}'.format(salt=salt, data=data)
+        h = hashlib.sha256()
+        h.update(s.encode())
+        r = h.digest()
+        return r.hex()
+
+    def gen_salt_key(self, string, prefix='dalbit', init_val=1218):
+        s = '%s.%s' % (prefix, zlib.crc32(string.encode(), 1218))
+        r = self.to_hash(s, prefix)
+        r = zlib.crc32(r.encode(), 1218)
+        return '%x' % r
+
+    def add_new_ver(self, ver, type, salt, start_idx, end_idx, n_affected):
         # TODO : The new version must be greater than the last version
         
         q = '''
-        insert into dalbit_checkpoint(file_type, file_ver, start_idx, end_idx, affected_rows, file_path, reg_date)
-        values('{type}', '{ver}', {start_idx}, {end_idx}, {rows}, 'dalbit.{type}.{ver}.csv', NOW())
-        '''.format(type=type, ver=ver, start_idx=start_idx, end_idx=end_idx, rows=n_affected)
+        insert into dalbit_checkpoint(file_type, file_ver, salt_key, start_idx, end_idx, affected_rows, file_path, reg_date)
+        values('{type}', '{ver}', '{salt}', {start_idx}, {end_idx}, {rows}, 'dalbit.{type}.{ver}.csv', NOW())
+        '''.format(type=type, ver=ver, salt=salt, start_idx=start_idx, end_idx=end_idx, rows=n_affected)
         n = self.udb.execute_cud(q)
         return n
 
@@ -167,11 +187,11 @@ class Extractor:
             else:
                 raise        
 
-    def fetch_urlfile(self, start_idx, end_idx, ver, type):
+    def fetch_urlfile(self, start_idx, end_idx, ver, type, salt):
         sql = self._make_url_query(start_idx, end_idx)
         fname = self._make_out_fname(ver, type)
         self._make_dir(fname)
-        affected_rows, min_idx, max_idx = self.fetch_data(sql, fname)
+        affected_rows, min_idx, max_idx = self.fetch_data(sql, fname, salt)
   
         self.logger.info('Fetched UrlDb(%s): %d rows(index=%s~%s), %s' % (
             ver, affected_rows, min_idx, max_idx, fname))
@@ -189,11 +209,16 @@ class Extractor:
             # fetch urldb data
             last_ver = self.get_last_ver(type)
             new_ver = self.increase_ver(last_ver['file_ver'], type)
-            start_idx = last_ver['end_idx'] if type == 'part' else 0
-            n, min_idx, max_idx = self.fetch_urlfile(start_idx, -1, new_ver, type)
-
-            # add versioning info
-            r = self.add_new_ver(new_ver, type, min_idx, max_idx, n)
+            # start_idx = last_ver['end_idx'] if type == 'part' else 0
+            
+            salt_key = self.gen_salt_key(new_ver)
+            # make full version url file
+            n, min_idx, max_idx = self.fetch_urlfile(0, -1, new_ver, 'full', salt_key)
+            r = self.add_new_ver(new_ver, 'full', salt_key, min_idx, max_idx, n)
+            # make part version url file 
+            n, min_idx, max_idx = self.fetch_urlfile(last_ver['end_idx'], -1, new_ver, 'part', salt_key)
+            r = self.add_new_ver(new_ver, 'part', salt_key, min_idx, max_idx, n)
+            
             if not r:
                 self.logger.warning('Failed add new version(%s) : sql - %s' % (ver, q))
                 continue

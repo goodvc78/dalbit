@@ -50,6 +50,7 @@ class CheckPoint(models.Model):
     file_ver = models.CharField(max_length=50, default='0.0.1') 
     start_idx = models.IntegerField()
     end_idx = models.IntegerField()
+    salt_key = models.CharField(max_length=20, default='dalbit-x')
     affected_rows = models.IntegerField(default=0)
     file_path = models.CharField(max_length=512)
     reg_date = models.DateTimeField(default=timezone.now)
@@ -59,5 +60,5 @@ class CheckPoint(models.Model):
 		models.Index(fields=['reg_date'], name='reg_date_idx')
 	    ]
     def __str__(self):
-        return '[{}] {}.{} | {} rows(index {}~{}) | {}'.format(str(self.reg_date)[:19], self.file_type, self.file_ver,
-                self.affected_rows, self.start_idx, self.end_idx, self.file_path)
+        return '[{}] {}.{} | {} rows(index {}~{}) | {} - {}'.format(str(self.reg_date)[:19], self.file_type, self.file_ver,
+                self.affected_rows, self.start_idx, self.end_idx, self.file_path, self.salt_key)

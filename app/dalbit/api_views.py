@@ -52,13 +52,14 @@ def get_last_ver():
         qs = CheckPoint.objects.filter(file_type__exact=t).order_by('-id')[:1]
         if len(qs) == 0:
             return None
-        return '{type}.{ver}'.format(type=qs[0].file_type, ver=qs[0].file_ver) 
+        return {'ver': '{type}.{ver}'.format(type=qs[0].file_type, ver=qs[0].file_ver), 
+                'salt': qs[0].salt_key}
 
     part_ver = lookup_ver('part')
     full_ver = lookup_ver('full')    
     if not (part_ver and full_ver):
         return []
-    return part_ver, full_ver
+    return {'part_ver': part_ver, 'full_ver': full_ver}
    
  
 def urldb_info(request, file_key):
@@ -66,15 +67,13 @@ def urldb_info(request, file_key):
     if not is_valid_file_key(file_key):
         return res_error(1)
 
-    vers = get_last_ver()
-    if not vers:
+    info = get_last_ver()
+    if not info:
         return res_error(4)
     
     # make response with urlfile verison
-    res_data = { 
-        'last_url_ver': vers
-    }
-    
+    res_data = info
+
     return make_response(1, 'Succes', res_data)
 
 
