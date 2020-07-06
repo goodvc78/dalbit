@@ -10,7 +10,9 @@ class UrlDB(models.Model):
     pid = models.CharField(max_length=10)
     seq = models.IntegerField(null=True)
     dtype = models.IntegerField(default=1) # 1=url, 2=ip
-    data = models.CharField(max_length=256)
+    host = models.CharField(max_length=256)
+    port = models.CharField(max_length=256, default="80")
+    path = models.CharField(max_length=256, default="/")
     description = models.TextField(null=True)
     reg_date = models.DateTimeField(
             default=timezone.now)
@@ -18,7 +20,7 @@ class UrlDB(models.Model):
             blank=True, null=True)
 
     def __str__(self):
-        return '{}-{} : {}'.format(self.gid, self.gname, self.data[:50])
+        return '{}-{} : {}:{}{}'.format(self.gid, self.gname, self.host, self.port, self.path)
 
 
 class Category(models.Model):

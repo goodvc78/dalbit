@@ -41,8 +41,8 @@ class Extractor:
 
     def fetch_data(self, q, out_fname, salt, delimiter=u',', fetch_size=10):
         def hashing(row):
-            hashed = self.to_hash(row.get('data', ''), salt)
-            row['data'] = hashed
+            hashed = self.to_hash(row.get('host', ''), salt)
+            row['host'] = hashed
 
         def _write_row(f, row):
             row = map(str, row)
@@ -110,6 +110,8 @@ class Extractor:
         return r.hex()
 
     def gen_salt_key(self, string, prefix='dalbit', init_val=1218):
+        # truncate micro version 
+        string = string.rsplit('.', 1)[0]
         s = '%s.%s' % (prefix, zlib.crc32(string.encode(), 1218))
         r = self.to_hash(s, prefix)
         r = zlib.crc32(r.encode(), 1218)
@@ -159,7 +161,7 @@ class Extractor:
     def _make_url_query(self, start_idx, end_idx=-1):
         end_condition = '' if end_idx == -1 else ' and id <= %s' % end_idx
         q = '''
-        select id, gtype, gid, gname, pid, dtype, data
+        select id, gtype, gid, gname, pid, dtype, host, port, path
         from dalbit_urldb
         where id > {start_idx} {end_condition}
         '''.format(start_idx=start_idx, end_condition=end_condition)
