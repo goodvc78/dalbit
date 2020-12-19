@@ -161,7 +161,7 @@ class Extractor:
     def _make_url_query(self, start_idx, end_idx=-1):
         end_condition = '' if end_idx == -1 else ' and id <= %s' % end_idx
         q = '''
-        select id, gtype, gid, gname, pid, dtype, host, port, path
+        select id, gtype, gid, pid, cate_desc, dtype, host, path
         from dalbit_urldb
         where id > {start_idx} {end_condition}
         '''.format(start_idx=start_idx, end_condition=end_condition)
