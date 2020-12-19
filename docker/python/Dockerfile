@@ -12,7 +12,8 @@ RUN yum clean all && yum update -y && yum upgrade -y && \
     yum install -y ruby ruby-devel lua lua-devel luajit luajit-devel tcl-devel perl perl-devel perl-ExtUtils-ParseXS perl-ExtUtils-XSpp perl-ExtUtils-CBuilder perl-ExtUtils-Embed && \
     yum install -y ctags the_silver_searcher && \
     yum install -y gitflow python36-devel python36-pip && \
-    yum install -y mysql-devel
+    yum install -y mysql-devel && \
+    yum install -y vim
 
 RUN pip3.6 install --ignore-installed --upgrade pip setuptools six supervisor psutil flake8 jedi pandas numpy fire
 # RUN unlink /bin/python && \
@@ -24,5 +25,7 @@ RUN pip3 install --upgrade pip \
     && pip3 install -r requirements.txt \
     && rm /usr/bin/mysql*
 COPY uwsgi.ini /uwsgi.ini
+COPY .vimrc ~/.vimrc
+COPY .bashrc ~/.bashrc
 
 CMD ["uwsgi", "--ini", "/uwsgi.ini"]
